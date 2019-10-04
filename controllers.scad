@@ -1,7 +1,7 @@
 function in(in) = in*25.4;
 $fa=1;
 $fs=.5;
-fudge=0;
+fudge=0.5;
 tolerance=.5;
 foot_thick=.2;
 foot_radius=5;
@@ -22,11 +22,15 @@ ctoh_bot=in(0.2625)+ps;
 ctoh_top=in(0.3125)+ps;
 
 board_clearance=0.5;
-board_length=in(3.65);
-board_width=in(1.325);
+board_length=69.85;
+board_width=24.13;
 board_thick=in(.063);
 board_offset=5;
 ledge_width=2.5;
+
+sideport_width=21.35;
+sideport_height=2.6+0.5;
+sideport_offset=22.86; // center of board to center of connector
 
 socket_thick=1.5;
 box_thick=2.5;
@@ -34,10 +38,7 @@ box_height=
     box_thick+
     board_offset+
     board_thick+
-    pin_base_height+
-    pin_gap+
-    socket_thick+
-    socket_depth;
+    teensy_total_height;
 
 //helper
 board_top =
@@ -55,9 +56,10 @@ teensy_hole_height = max(
 bottom_height=box_height-socket_depth-socket_thick;
 
 box_length=board_length+box_thick*2+board_clearance*2;
-box_width=board_width+box_thick*2+board_clearance*2;
+box_width=board_width+board_clearance*2;
 
 teensy_trans=(bottom_to_teensy-top_to_teensy)/2;
+center_to_teensy=2.54;
 
 connector_bottom=board_top +
     teensy_height +
@@ -193,52 +195,36 @@ module box_top() {
 }
 
 module box_bottom() {
-    color("darkblue") {
+    color("gold") {
         //Base outline
-        translate([-box_length/2,-box_width/2,0])
         difference() {
-            translate([0,0,0])
-            cube(size=[box_length,box_width,bottom_height]);
-            translate([0,box_thick,box_thick])
-            cube(size=[box_length,box_width-box_thick*2,box_height]);
-            translate([-fudge,-fudge,0])
-            translate([0,0,box_thick])
-            cube([box_thick,box_width,box_height] + [fudge,fudge*2,0]);
-            translate([0,-fudge,0])
-            translate([box_length-box_thick,0,box_thick])
-            cube([box_thick,box_width,box_height] + [fudge,fudge*2,0]);
-        }
-
-        //Teensy holder
-        translate(cutout_pos)
-        difference() {
-            union() {
-                cube(cutout_size);
-                translate([0,box_thick,0])
-                rotate([0,90,0])
-                linear_extrude(height=cutout_size[0])
-                polygon(points=[[0,0],[cutout_size[1]-box_thick,0],[0,cutout_size[1]-box_thick]]);
+            translate([-box_length/2,-box_width/2,0])
+            difference() {
+                translate([0,0,0])
+                cube(size=[box_length,box_width,box_height]);
+                translate([box_thick,box_thick,box_thick])
+                cube(size=[box_length-box_thick*2,box_width-box_thick*2,box_height]);
+                translate([box_thick,-fudge,box_thick+board_offset])
+                cube(size=[box_length-box_thick*2,box_width+fudge*2,box_height]);
+                translate([0,box_width/2,board_top+teensy_height+teensy_thick])
+                translate([0,0,connector_size[2]/2])
+                cube(size=connector_size, center=true);
+    /*
+                translate([-fudge,-fudge,0])
+                translate([0,0,box_thick])
+                cube([box_thick,box_width,box_height] + [fudge,fudge*2,0]);
+                translate([0,-fudge,0])
+                translate([box_length-box_thick,0,box_thick])
+                cube([box_thick,box_width,box_height] + [fudge,fudge*2,0]);
+    */
             }
-            translate([box_thick,0,box_thick] + [0,-fudge,fudge])
-            cube(size=cutout_size-([box_thick*2,cutout_thick,box_thick] + [0,-fudge,0]));
+            bothsides() bothends()
             translate([
-                (cutout_size[0]-connector_size[0])/2,
-                bottom_to_teensy+box_thick-cutout_thick,
-                connector_bottom-cutout_pos[2]
+                (board_length/2+board_clearance-sideport_offset-sideport_width/2),
+                -box_thick-fudge,
+                box_thick+board_offset-sideport_height
             ])
-            cube(size=connector_size + [0,0,box_height] + [0,0,fudge]);
-            //Just cut out everything to the top, the cap will take care of it
-        }
-
-        //Board holders
-        translate([0,0,box_thick+board_offset])
-        bothsides() union() {
-            rotate([0,90,0])
-            linear_extrude(height=box_length-box_thick*2,center=true) {
-                polygon(points=[[0,0],[ledge_width,0],[0,ledge_width]]);
-                translate([-(ledge_width/2+board_thick),0,0])
-                polygon(points=[[0,0],[ledge_width/2,0],[0,ledge_width/2]]);
-            }
+            cube(size=[sideport_width+board_clearance,box_thick+fudge*2,sideport_height+fudge]);
         }
 
         //Top holder
@@ -310,12 +296,12 @@ timesfour() lump_top();
 
 board();
 
-!box_top();
-%translate([
-    -teensy_width/2,
-    teensy_trans-teensy_length/2,
+box_bottom();
+translate([
+    -center_to_teensy-teensy_length,
+    teensy_width/2,
     board_top
-]) teensy();
+]) rotate([0,0,-90]) teensy();
 *intersection() {
     union() {
         box();
