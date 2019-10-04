@@ -227,6 +227,25 @@ module box_bottom() {
             cube(size=[sideport_width+board_clearance,box_thick+fudge*2,sideport_height+fudge]);
         }
 
+        // USB holder thing
+        outside_to_teensy = box_length/2 - teensy_length - center_to_teensy;
+        translate([
+            -box_length/2,
+            0,
+            board_top+teensy_height+teensy_thick
+        ])
+        rotate([0,0,-90])
+        translate([0,outside_to_teensy/2,connector_size[2]/2])
+        difference() {
+            translate([0,0,-box_thick/2])
+            cube(size=[
+                connector_size[0]+box_thick*2,
+                outside_to_teensy,
+                connector_size[2]+box_thick
+            ],center=true);
+            cube(size=connector_size,center=true);
+        }
+
         //Top holder
         bothends() {
             bothsides() union() {
