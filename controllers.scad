@@ -94,10 +94,10 @@ module lump_top() {
 }
 
 module timesfour() {
-    translate([-ctoh_N64,-ctoh_bot,0]) child(0);
-    translate([ctoh_NES,-ctoh_bot,0]) child(0);
-    translate([-ctoh_NES,ctoh_top,0]) rotate([0,0,180]) child(0);
-    translate([ctoh_N64,ctoh_top,0]) rotate([0,0,180]) child(0);
+    translate([-ctoh_N64,-ctoh_bot,0]) children(0);
+    translate([ctoh_NES,-ctoh_bot,0]) children(0);
+    translate([-ctoh_NES,ctoh_top,0]) rotate([0,0,180]) children(0);
+    translate([ctoh_N64,ctoh_top,0]) rotate([0,0,180]) children(0);
 }
 
 module connector_cap() {
@@ -253,23 +253,22 @@ module box_bottom() {
         translate([-wall_thick,-wall_thick,0])
         cylinder(r=foot_radius,h=foot_thick);
     }
-
 }
 
 module bothsides() {
     translate([0,-(box_width/2-box_thick),0])
-    child(0); 
+    children(0); 
     translate([0,box_width/2-box_thick,0])
     mirror([0,1,0])
-    child(0); 
+    children(0); 
 }
 
 module bothends() {
     translate([-(box_length/2-box_thick),0,0])
-    child(0);
+    children(0);
     translate([box_length/2-box_thick,0,0])
     mirror([1,0,0])
-    child(0);
+    children(0);
 }
 
 module box() {
