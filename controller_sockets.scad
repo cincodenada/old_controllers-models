@@ -25,7 +25,7 @@ N64_top_size=21.90;
 wall_thick=1.55+tolerance;
 wall_gap=1.66;
 pinsocket_thick=1;
-pinsocket_width=3.23;
+pinsocket_width=3.5;
 
 socket_depth=12.45+tolerance;
 
@@ -38,7 +38,7 @@ module socket(x,y) {
 	translate([ps*x,ps*y,0])
 	difference() {
         circle(r=pinsocket_width/2, center=true);
-        circle(r=pinsocket_width/2-pinsocket_thick, center=true);
+        //circle(r=pinsocket_width/2-pinsocket_thick, center=true);
 	}
 }
 

@@ -16,8 +16,8 @@ csx=ps*14/2;
 
 //Center to handle
 //N64 and NES-first
-ctoh_N64=in(1.2);
-ctoh_NES=in(1.1);
+ctoh_N64=24.130;
+ctoh_NES=21.590;
 ctoh_bot=in(0.2625)+ps;
 ctoh_top=in(0.3125)+ps;
 
@@ -27,6 +27,13 @@ board_width=24.13;
 board_thick=in(.063);
 board_offset=5;
 ledge_width=2.5;
+
+child_length=80.01;
+child_width=20.320;
+child_clearance=3;
+child_offset=2.3;
+board_to_child_top=10.22;
+child_top_to_pins=8.255;
 
 sideport_width=21.35;
 sideport_height=2.6+0.5;
@@ -55,7 +62,7 @@ teensy_hole_height = max(
 );
 bottom_height=box_height-socket_depth-socket_thick;
 
-box_length=board_length+box_thick*2+board_clearance*2;
+box_length=child_length+box_thick*2+board_clearance*2;
 box_width=board_width+board_clearance*2;
 
 teensy_trans=(bottom_to_teensy-top_to_teensy)/2;
@@ -107,11 +114,9 @@ module lump_top() {
     }
 }
 
-module timesfour() {
-    translate([-ctoh_N64,-ctoh_bot,0]) children(0);
-    translate([ctoh_NES,-ctoh_bot,0]) children(0);
-    translate([-ctoh_NES,ctoh_top,0]) rotate([0,0,180]) children(0);
-    translate([ctoh_N64,ctoh_top,0]) rotate([0,0,180]) children(0);
+module timestwo() {
+    translate([-ctoh_N64,0,0]) children(0);
+    translate([ctoh_NES,0,0]) children(0);
 }
 
 module connector_cap() {
@@ -145,65 +150,65 @@ module grab_bottom() {
     cube(ledge_width);
 }
 
-module box_top() {
-    //Box top
-    color("slateblue",0.5) {
-        difference() {
-            union() {
-                //Main frame of the box
-                translate([-box_length/2,-box_width/2,0])
-                difference() {
-                    translate([0,0,box_thick])
-                    cube(size=[
-                        box_length,
-                        box_width,
-                        box_height-box_thick
-                    ]);
-                    translate([box_thick,0,0])
-                    cube(size=[
-                        box_length-box_thick*2,
-                        box_width,
-                        bottom_height
-                    ]);
-                    translate([
-                        box_length/2,
-                        box_width/2 - box_thick/2,
-                        board_top+teensy_hole_height/2])
-                    cube(size=[
-                        teensy_width+teensy_margin*2,
-                        box_width-box_thick,
-                        teensy_hole_height
-                    ],center=true);
-                }
+module side_cover() {
+    socket_depth=5;
+    box_length=child_length+box_thick*2;
+    box_width=child_width;
+    box_height=socket_depth+socket_thick+pin_base_height+board_thick+child_offset;
+    difference() {
+        union() {
+            //Main frame of the box
+            translate([-box_length/2,-box_width/2,0])
+            difference() {
+                translate([0,0,0])
+                cube(size=[
+                    box_length,
+                    box_width,
+                    box_height
+                ]);
+                translate([box_thick,-fudge,socket_thick+socket_depth])
+                cube(size=[
+                    box_length-box_thick*2,
+                    box_width+fudge*2,
+                    bottom_height
+                ]);
             }
-            translate([0,0,box_height-socket_depth])
-            linear_extrude(height=socket_depth+fudge)
-            timesfour() lump();
-            translate([0,0,bottom_height] + [0,0,-fudge])
-            linear_extrude(height=box_thick+fudge*2)
-            timesfour() pin_cutout();
         }
-
-        //Connector cap thingy
-        translate(cutout_pos)
-        connector_cap();
-
-        //Feet
-        difference() {
-            bothends() bothsides()
-            translate([0,0,box_height-foot_thick])
-            cylinder(r=foot_radius,h=foot_thick);
-            translate([0,0,box_height-socket_depth])
-            linear_extrude(height=socket_depth+fudge)
-            timesfour() lump();
+        union() {
+          translate([0,0,-fudge])
+          linear_extrude(height=socket_depth+fudge)
+          timestwo() lump(false);
         }
+        translate([0,0,socket_depth-fudge])
+        linear_extrude(height=box_thick+fudge*2)
+        timestwo() pin_cutout();
+    }
+    bothends(box_length) {
+      overhang=board_width-child_width;
+      height=5;
+      translate([-box_thick,-height/2,box_height]) {
+        cube(size=[box_thick+overhang,height,height]);
+        translate([0,height/2,height])
+        rotate([0,90,0])
+        cylinder(r=height/2, h=box_thick+overhang);
+      }
+    }
 
-        bothends() {
-            bothsides() union() {
-                grab_top();
-            }
+    //Feet
+    difference() {
+        bothends(box_length) bothsides(box_width)
+        cylinder(r=foot_radius,h=foot_thick);
+        translate([0,0,0])
+        linear_extrude(height=socket_depth+fudge)
+        timestwo() lump();
+    }
+
+    bothends() {
+        bothsides() union() {
+            grab_top();
         }
     }
+    //}
 }
 
 module box_bottom() {
@@ -232,6 +237,8 @@ module box_bottom() {
             }
             bothsides() bothends()
             translate([
+                // bothsides/ends is relative to box, not board
+                (child_length-board_length)+
                 (board_length/2+board_clearance-sideport_offset-sideport_width/2),
                 -box_thick-fudge,
                 box_thick+board_offset-sideport_height
@@ -300,18 +307,18 @@ module box_bottom() {
     //}
 }
 
-module bothsides() {
-    translate([0,-(box_width/2-box_thick),0])
+module bothsides(width=box_width) {
+    translate([0,-(width/2-box_thick),0])
     children(0); 
-    translate([0,box_width/2-box_thick,0])
+    translate([0,width/2-box_thick,0])
     mirror([0,1,0])
     children(0); 
 }
 
-module bothends() {
-    translate([-(box_length/2-box_thick),0,0])
+module bothends(length=box_length) {
+    translate([-(length/2-box_thick),0,0])
     children(0);
-    translate([box_length/2-box_thick,0,0])
+    translate([length/2-box_thick,0,0])
     mirror([1,0,0])
     children(0);
 }
@@ -347,12 +354,14 @@ module board() {
 *color("dimgray")
 translate([0,0,box_height])
 linear_extrude(height=socket_depth)
-timesfour() lump_top();
+timestwo() lump_top();
 
-board();
+*board();
 
-!box_bottom();
-translate([
+*rotate([-90,0,0])
+*side_cover();
+*box_bottom();
+*translate([
     -center_to_teensy-teensy_length,
     teensy_width/2,
     board_top
