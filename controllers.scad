@@ -350,6 +350,86 @@ module board() {
     }
 }
 
+module solder_helper() {
+  helper_width=ps*9;
+  helper_height=pin_plastic+board_thick;
+  helper_length=teensy_length*2;
+  shelf_width=1;
+
+  module slot(width, length) {
+    translate([0,0,board_thick])
+    cube(size=[width,length,helper_height*2-board_thick]);
+    translate([0,shelf_width,0])
+    cube(size=[width,length-shelf_width*2,helper_height*2]);
+  }
+
+  module slotpair(width, length, outside) {
+    translate([outside/2-width,0,0])
+    slot(width, length);
+    translate([-outside/2,0,0])
+    slot(width, length);
+  }
+
+  difference() {
+    cube(size=[helper_width, helper_length, helper_height]);
+
+    translate([helper_width/2,5,0])
+    slotpair(header_thick, teensy_length, teensy_width);
+
+
+    pin_length=1.16;
+    port_elevate=pin_length-board_thick+0.2;
+
+    port_width=8.4;
+    port_length=20.8;
+    port_overhang=1.5; 
+    port_sep=6.730;
+    port_total_width=port_sep+port_width*2;
+    echo(port_elevate);
+    translate([helper_width/2,5+(teensy_length-port_length)/2,port_elevate]) {
+      slotpair(port_width, port_length, port_total_width);
+      translate([0,shelf_width,0])
+      slotpair(port_overhang,port_length-shelf_width*2,port_sep+0.01);
+    }
+
+
+    base_width=6.9; // from datasheet
+    pins_to_header=5.080;
+    edge_to_header=ps*3.5-7.620-header_thick/2;
+    multiport_width=ps*6+SNES_gap;
+    translate([(helper_width-multiport_width)/2,teensy_length+10+ps*3,0])
+    rotate([0,0,-90]) {
+      slot(base_width, ps*4);
+      translate([0,ps*3+SNES_gap,0])
+      slot(base_width, ps*3);
+      translate([0,ps,0])
+      slot(base_width+ps, ps*3);
+
+      header_width=in(0.8);
+      translate([-5, multiport_width/2-header_width/2,0])
+      slot(header_thick, header_width);
+    }
+
+    inset=-box_thick+4;
+    translate([helper_width/2,helper_length/2,0])
+    bothsides(helper_length-inset*2) bothends(helper_width-inset*2)
+    cylinder(d=3,h=helper_height);
+  }
+
+  // posts
+  helper_offset=pin_length*1.1;
+  *translate([-15,10,0])
+  bothsides(20) bothends(20) {
+    union() {
+      cylinder(d=3,h=helper_height+helper_offset);
+      cylinder(r=4,h=helper_offset);
+    }
+  }
+  
+}
+
+solder_helper();
+
 //Socket mockups
 *color("dimgray")
 translate([0,0,box_height])
