@@ -3,6 +3,7 @@ header_thick=in(0.1);
 header_hole_size=in(.03);
 header_hole_depth=in(.236);
 header_ps=in(0.1);
+header_length=in(1.2);
 teensy_width=in(0.7);
 teensy_length=in(1.4);
 teensy_thick=in(.063);
@@ -62,9 +63,9 @@ module teensy_headers() {
     color("darkgray") {
         difference() {
             union() {
-                cube(size=[header_thick,teensy_length,header_height]);
+                cube(size=[header_thick,header_length,header_height]);
                 translate([teensy_width-header_thick,0,0])
-                cube(size=[header_thick,teensy_length,header_height]);
+                cube(size=[header_thick,header_length,header_height]);
             }
             for(offset=[0:11]) {
                 teensy_header_hole(offset);

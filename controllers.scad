@@ -66,7 +66,7 @@ box_length=child_length+box_thick*2+board_clearance*2;
 box_width=board_width+board_clearance*2;
 
 teensy_trans=(bottom_to_teensy-top_to_teensy)/2;
-center_to_teensy=2.54;
+center_to_teensy=-2.54;
 
 teensy_top=board_top +
     teensy_height +
