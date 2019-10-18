@@ -186,11 +186,11 @@ module side_cover() {
     bothends(box_length) {
       overhang=board_width-child_width;
       height=5;
-      translate([-box_thick,-height/2,box_height]) {
-        cube(size=[box_thick+overhang,height,height]);
+      translate([0,-height/2,box_height]) {
+        cube(size=[box_thick,height,height]);
         translate([0,height/2,height])
         rotate([0,90,0])
-        cylinder(r=height/2, h=box_thick+overhang);
+        cylinder(r=height/2, h=box_thick);
       }
     }
 
