@@ -29,7 +29,7 @@ board_offset=5;
 ledge_width=2.5;
 
 child_length=80.01;
-child_width=20.320;
+child_width=15.875;
 child_clearance=3;
 child_offset=2.3;
 board_to_child_top=10.22;
@@ -65,10 +65,6 @@ bottom_height=box_height-socket_depth-socket_thick;
 box_length=child_length+box_thick*2;
 box_width=board_width+board_clearance*2;
 
-side_length=child_length+box_thick*2;
-side_width=child_width;
-side_height=socket_depth+socket_thick+pin_base_height+board_thick+child_offset;
-
 teensy_trans=(bottom_to_teensy-top_to_teensy)/2;
 center_to_teensy=-2.54;
 outside_to_teensy = box_length/2 - teensy_length - center_to_teensy;
@@ -96,6 +92,12 @@ holder_height=box_height-(socket_depth+socket_thick+holder_offset);
 holder_clearance=0.5;
 
 side_offset=board_top+(board_to_child_top-child_top_to_pins);
+side_ceiling=max(ps+NES_corner_radius, N64_width/2)+socket_thick;
+
+side_length=child_length+box_thick*2;
+side_width=side_offset+side_ceiling;
+side_height=socket_depth+socket_thick+pin_base_height+board_thick+child_offset;
+
 
 module trans_side_cover() {
     bothsides(box_width)
@@ -110,6 +112,7 @@ module wedge(width, length) {
     intersection() {
         cube(size=dims);
         rotate([0,-45,0])
+        translate([-width*(2-sqrt(2))/2,-length/2,0])
         cube(size=dims*2);
     }
 }
@@ -165,79 +168,81 @@ module grab_bottom() {
 }
 
 module side_cover() {
-    difference() {
-        union() {
-            //Main frame of the box
-            translate([-side_length/2,-side_width/2,0])
-            difference() {
-                translate([0,0,0])
-                cube(size=[
-                    side_length,
-                    side_width,
-                    side_height
-                ]);
-                translate([box_thick,-fudge,socket_thick+socket_depth])
-                cube(size=[
-                    side_length-box_thick*2,
-                    side_width+fudge*2,
-                    bottom_height
-                ]);
-            }
-        }
-        union() {
-          translate([0,0,-fudge])
-          linear_extrude(height=socket_depth+fudge)
-          timestwo() lump(false);
-        }
-        translate([0,0,socket_depth-fudge])
-        linear_extrude(height=box_thick+fudge*2)
-        timestwo() pin_cutout();
-    }
-
-    side_tabs();
-
-    extension_height=box_height-side_offset-side_width/2+box_thick;
-    translate([0,side_width/2,0]) {
-      bothends(side_length) {
-        translate([0,0,extension_height])
-        cube([box_thick,extension_height,side_height-extension_height]);
-        translate([box_thick/2,0,extension_height])
-        rotate([0,0,90])
-        wedge(extension_height,box_thick);
-      }
+  difference() {
+    union() {
+      //Main frame of the box
+      translate([-side_length/2,-side_offset,0])
       difference() {
-        translate([-side_length/2,0,0]) {
-          rotate([-45,0,0])
-          translate([0,-box_thick,0])
-          cube([side_length,box_thick,extension_height*sqrt(2)]);
-          translate([0,extension_height-box_thick,extension_height])
-          cube([side_length,box_thick,side_height-extension_height+box_width/2]);
-        }
-        bothends(side_length)
-        translate([0,5,side_height+box_width/2])
-        cube([(outside_to_teensy-cutout_thick)*2,cable_height,cable_width],center=true);
+        cube(size=[
+          side_length,
+          side_width,
+          side_height
+        ]);
+        translate([box_thick,box_thick-fudge,box_thick-fudge])
+        cube(size=[
+          side_length-box_thick*2,
+          side_width-box_thick+fudge*2,
+          side_height
+        ]);
+      }
+      // Socket walls
+      minkowski() {
+        linear_extrude(height=socket_depth)
+        timestwo() lump();
+        cylinder(h=socket_thick, r=socket_thick);
       }
     }
+    /*
+    translate([0,0,socket_depth-fudge])
+    linear_extrude(height=box_thick+fudge*2)
+    mirror([1,0,0])
+    timestwo() pin_cutout();
+    */
+  
+    // Sockets
+    translate([0,0,-fudge])
+    linear_extrude(height=socket_depth+socket_thick+fudge*2)
+    timestwo() lump();
+  }
 
-    //Feet
+  side_tabs();
+
+  /* Lid */
+  extension_height=box_height-side_offset-child_top_to_pins+box_thick;
+  translate([0,side_ceiling,0]) {
+    bothends(side_length) {
+      translate([0,0,extension_height])
+      cube([box_thick,extension_height,side_height-extension_height]);
+      translate([box_thick/2,0,extension_height])
+      rotate([0,0,90])
+      wedge(extension_height,box_thick);
+    }
     difference() {
-        bothends(side_length) bothsides(side_width)
-        cylinder(r=foot_radius,h=foot_thick);
-        translate([0,0,0])
-        linear_extrude(height=socket_depth+fudge)
-        timestwo() lump();
-    }
-
-    bothends() {
-        bothsides() union() {
-            grab_top();
+      translate([-side_length/2,0,0]) {
+        intersection() {
+          slant_thick=box_thick/sqrt(2);
+          rotate([-45,0,0])
+          translate([0,-slant_thick,0])
+          cube([side_length,slant_thick,extension_height*sqrt(2)]);
+          cube([side_length,extension_height,extension_height]);
         }
+        translate([0,extension_height-box_thick,extension_height])
+        cube([side_length,box_thick,side_height-extension_height+box_width/2]);
+      }
+      bothends(side_length)
+      translate([0,5,side_height+box_width/2])
+      cube([(outside_to_teensy-cutout_thick)*2,cable_height,cable_width],center=true);
     }
+  }
+
+  /* Bottom extension */
+  extend_thick=min(box_thick, side_offset-(side_width/2));
+  translate([-side_length/2,-(side_width/2+extend_thick),0])
+  cube([side_length,extend_thick,side_height]);
 }
 
 module side_tabs() {
   bothends(side_length) {
-    overhang=board_width-child_width;
     height=5;
     translate([0,-height/2,side_height]) {
       cube(size=[box_thick,height,height]);
