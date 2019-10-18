@@ -136,36 +136,7 @@ module timestwo() {
     translate([ctoh_NES,0,0]) children(0);
 }
 
-module connector_cap() {
-    translate([0,-fudge,0])
-    translate([
-        (cutout_size[0]-connector_size[0])/2,
-        cutout_size[1] - cutout_thick,
-        teensy_top + connector_size[2] - bottom_height,
-    ])
-    cube(size=[
-        connector_size[0],
-        cutout_thick,
-        box_height-teensy_top-connector_size[2]
-    ] + [0,fudge*2,fudge]);
-}
 
-module grab_top() {
-    grab_r = ledge_width/2;
-    translate([
-        0,
-        ledge_width,
-        box_thick-grab_r+
-        board_offset-ledge_width
-    ])
-    rotate([90,0,0])
-    cylinder(h=ledge_width, r=grab_r);
-}
-
-module grab_bottom() {
-    translate([0,0,box_thick+board_offset-ledge_width])
-    cube(ledge_width);
-}
 
 module side_cover() {
   difference() {
@@ -267,14 +238,6 @@ module box_bottom() {
             translate([0,box_width/2,teensy_top])
             translate([box_thick,0,connector_size[2]/2])
             cube(size=[box_thick*2+fudge*2, cable_width, cable_height], center=true);
-/*
-            translate([-fudge,-fudge,0])
-            translate([0,0,box_thick])
-            cube([box_thick,box_width,box_height] + [fudge,fudge*2,0]);
-            translate([0,-fudge,0])
-            translate([box_length-box_thick,0,box_thick])
-            cube([box_thick,box_width,box_height] + [fudge,fudge*2,0]);
-*/
         }
     }
   }
@@ -335,20 +298,6 @@ module box_bottom() {
       }
     }
   }
-
-/*
-        //Top holder
-        bothends() {
-            bothsides() union() {
-                grab_bottom();
-            }
-        }
-
-        //Feet
-        bothends() bothsides()
-        translate([-wall_thick,-wall_thick,0])
-        cylinder(r=foot_radius,h=foot_thick);
-*/
 
   difference() {
     union() {
