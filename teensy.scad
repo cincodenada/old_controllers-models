@@ -11,13 +11,14 @@ teensy_thick=in(.063);
 pin_plastic=in(0.1);
 teensy_height = header_height + pin_plastic;
 
-connector_overhang=0.55;
-connector_size=[7.75,9.08,3.9];
+connector_overhang=0.7;
+connector_size=[7.5,5,2.4];
+connector_headroom=3.9; //legacy, plus buttons and things
 
 teensy_total_height =
     teensy_height +
-    connector_size[2] +
-    teensy_thick;
+    teensy_thick +
+    connector_headroom;
 
 eh_plastic=in(0.1);
 eh_plastic_width=in(0.2);

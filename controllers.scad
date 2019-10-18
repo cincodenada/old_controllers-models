@@ -73,8 +73,8 @@ teensy_top=board_top +
     teensy_height +
     board_thick;
 
-cable_width=15;
-cable_height=12;
+cable_width=12;
+cable_height=10;
 
 //Size of outer cutout box
 cutout_size=[
@@ -93,11 +93,13 @@ holder_clearance=0.5;
 
 side_offset=board_top+(board_to_child_top-child_top_to_pins);
 side_ceiling=max(ps+NES_corner_radius, N64_width/2)+socket_thick;
+socket_breadth=side_ceiling+SNES_corner_radius;
 
 side_length=child_length+box_thick*2;
 side_width=side_offset+side_ceiling;
 side_height=socket_depth+socket_thick+pin_base_height+board_thick+child_offset;
 
+lid_slot_width=5;
 
 module trans_side_cover() {
     bothsides(box_width)
@@ -132,13 +134,59 @@ module lump_top() {
 }
 
 module timestwo() {
-    translate([-ctoh_N64,0,0]) children(0);
-    translate([ctoh_NES,0,0]) children(0);
+    translate([-ctoh_N64,0,0]) children();
+    translate([ctoh_NES,0,0]) children();
 }
 
-
-
 module side_cover() {
+  extension_height=box_height-side_offset-child_top_to_pins+box_thick;
+
+  module grabber() {
+    /* Grabber */
+    grabber_size=5;
+    bump_size=2;
+    translate([0,-box_thick,-grabber_size/2]) {
+      translate([-grabber_size/2,0,0])
+      cube(size=[grabber_size,box_thick,grabber_size*1.5]);
+
+      translate([0,box_thick,grabber_size*1.5-bump_size/2*sqrt(2)])
+      rotate([45,0,0])
+      cube(size=[grabber_size,bump_size,bump_size],center=true);
+
+      translate([0,box_thick,0])
+      rotate([0,0,-90])
+      wedge(box_thick, grabber_size);
+    }
+  }
+
+  module half_lid() {
+    translate([0,side_ceiling,0]) {
+      bothends(side_length) {
+        translate([0,0,extension_height])
+        cube([box_thick,extension_height,side_height-extension_height]);
+        translate([box_thick/2,0,extension_height])
+        rotate([0,0,90])
+        wedge(extension_height,box_thick);
+      }
+      difference() {
+        translate([-side_length/2,0,0]) {
+          intersection() {
+            slant_thick=box_thick/sqrt(2);
+            rotate([-45,0,0])
+            translate([0,-slant_thick,0])
+            cube([side_length,slant_thick,extension_height*sqrt(2)]);
+            cube([side_length,extension_height,extension_height]);
+          }
+          translate([0,extension_height-box_thick,extension_height])
+          cube([side_length,box_thick,side_height-extension_height+box_width/2]);
+        }
+        bothends(side_length)
+        translate([0,5,side_height+box_width/2])
+        cube([(outside_to_teensy-cutout_thick)*2,cable_height,cable_width],center=true);
+      }
+    }
+  }
+  
   difference() {
     union() {
       //Main frame of the box
@@ -169,57 +217,53 @@ module side_cover() {
     mirror([1,0,0])
     timestwo() pin_cutout();
     */
-  
+
     // Sockets
     translate([0,0,-fudge])
     linear_extrude(height=socket_depth+socket_thick+fudge*2)
     timestwo() lump();
-  }
 
-  side_tabs();
-
-  /* Lid */
-  extension_height=box_height-side_offset-child_top_to_pins+box_thick;
-  translate([0,side_ceiling,0]) {
-    bothends(side_length) {
-      translate([0,0,extension_height])
-      cube([box_thick,extension_height,side_height-extension_height]);
-      translate([box_thick/2,0,extension_height])
-      rotate([0,0,90])
-      wedge(extension_height,box_thick);
-    }
-    difference() {
-      translate([-side_length/2,0,0]) {
-        intersection() {
-          slant_thick=box_thick/sqrt(2);
-          rotate([-45,0,0])
-          translate([0,-slant_thick,0])
-          cube([side_length,slant_thick,extension_height*sqrt(2)]);
-          cube([side_length,extension_height,extension_height]);
-        }
-        translate([0,extension_height-box_thick,extension_height])
-        cube([side_length,box_thick,side_height-extension_height+box_width/2]);
+    // Socket lid slots
+    translate([0,0,socket_depth])
+    timestwo() {
+      translate([-lid_slot_width/2,-socket_breadth/2,0]) {
+        translate([-ps,0,0])
+        cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick]);
+        translate([ps+SNES_gap,0,0])
+        cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick]);
       }
-      bothends(side_length)
-      translate([0,5,side_height+box_width/2])
-      cube([(outside_to_teensy-cutout_thick)*2,cable_height,cable_width],center=true);
     }
+
+    side_tabs(1);
   }
 
-  /* Bottom extension */
-  extend_thick=min(box_thick, side_offset-(side_width/2));
-  translate([-side_length/2,-(side_width/2+extend_thick),0])
-  cube([side_length,extend_thick,side_height]);
+
+  difference() {
+    half_lid();
+    translate([
+      side_length/4,
+      side_ceiling+extension_height-box_thick,
+      side_width+box_width/2
+    ])
+    rotate([0,180,0])
+    grabber();
+  }
+
+  translate([
+    -side_length/4,
+    side_ceiling+extension_height-box_thick,
+    side_width+box_width/2])
+  grabber();
 }
 
-module side_tabs() {
+// Thicken cause cutouts are weird sometimes
+module side_tabs(thicken=0) {
   bothends(side_length) {
     height=5;
-    translate([0,-height/2,side_height]) {
-      cube(size=[box_thick,height,height]);
-      translate([0,height/2,height])
-      rotate([0,90,0])
-      cylinder(r=height/2, h=box_thick);
+    translate([0,0,side_height]) {
+      translate([-thicken/2,0,-height/2])
+      rotate([45,0,0])
+      cube(size=[box_thick+thicken,height/sqrt(2),height/sqrt(2)]);
     }
   }
 }
@@ -262,23 +306,17 @@ module box_bottom() {
                     outside_to_teensy,
                     cable_height+box_thick*2
                 ],center=true);
+                translate([0,-connector_overhang/2,0])
                 cube(size=[
                     cable_width,
-                    outside_to_teensy+fudge*2,
+                    outside_to_teensy-connector_overhang+fudge*2,
                     cable_height
                 ],center=true);
-            }
-            translate([0,outside_to_teensy-connector_overhang/2,connector_size[2]/2])
-            difference() {
-                cube(size=[
-                    cable_width+box_thick*2,
-                    connector_overhang,
-                    cable_height+box_thick*2
-                ],center=true);
+                translate([0,outside_to_teensy/2,connector_size[2]/2])
                 cube(size=[
                     connector_size[0],
                     connector_overhang+fudge*2,
-                    connector_size[2]
+                    connector_headroom
                 ],center=true);
             }
         }
@@ -304,6 +342,7 @@ module box_bottom() {
       box_base();
       usb_holder();
       usb_mirror_lump();
+      trans_side_cover() side_tabs();
     }
 
     bothsides() bothends()
@@ -315,11 +354,6 @@ module box_bottom() {
         box_thick+board_offset-sideport_height
     ])
     cube(size=[sideport_width+board_clearance,box_thick+fudge*2+tolerance,sideport_height+fudge]);
-
-    trans_side_cover() side_tabs();
-    // XXX Ugly hack cause floating point bullshit??
-    translate([-0.01,-0.01,0])
-    trans_side_cover() side_tabs();
   }
 }
 
@@ -355,14 +389,6 @@ module board() {
             board_width,
             board_thick
         ], center=true);
-
-        //Teensy
-        translate([
-            -teensy_width/2,
-            teensy_trans-teensy_length/2,
-            board_top
-        ])
-        teensy_headers();
     }
 }
 
@@ -459,9 +485,10 @@ translate([0,0,box_height])
 linear_extrude(height=socket_depth)
 timestwo() lump_top();
 
-*board();
+board();
 
-*side_cover();
+*trans_side_cover()
+side_cover();
 
 box_bottom();
 translate([
