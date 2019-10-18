@@ -307,18 +307,18 @@ module box_bottom() {
     //}
 }
 
-module bothsides(width=box_width) {
-    translate([0,-(width/2-box_thick),0])
+module bothsides(width=box_width-box_thick*2) {
+    translate([0,-width/2,0])
     children(0); 
-    translate([0,width/2-box_thick,0])
+    translate([0,width/2,0])
     mirror([0,1,0])
     children(0); 
 }
 
-module bothends(length=box_length) {
-    translate([-(length/2-box_thick),0,0])
+module bothends(length=box_length-box_thick*2) {
+    translate([-length/2,0,0])
     children(0);
-    translate([length/2-box_thick,0,0])
+    translate([length/2,0,0])
     mirror([1,0,0])
     children(0);
 }
@@ -352,13 +352,14 @@ module board() {
 
 module solder_helper() {
   helper_width=ps*9;
-  helper_height=pin_plastic+board_thick;
+  popup_height=0.2;
+  helper_height=pin_plastic+board_thick-popup_height;
   helper_length=teensy_length*2;
   shelf_width=1;
 
   module slot(width, length) {
     translate([0,0,board_thick])
-    cube(size=[width,length,helper_height*2-board_thick]);
+    cube(size=[width,length,helper_height*2]);
     translate([0,shelf_width,0])
     cube(size=[width,length-shelf_width*2,helper_height*2]);
   }
@@ -374,19 +375,25 @@ module solder_helper() {
     cube(size=[helper_width, helper_length, helper_height]);
 
     translate([helper_width/2,5,0])
-    slotpair(header_thick, teensy_length, teensy_width);
+    difference() {
+      slotpair(header_thick, teensy_length, teensy_width);
 
+      translate([0,teensy_length/2,0])
+      bothsides(teensy_length)
+      bothends(teensy_width-header_thick)
+      bothends(header_thick) cube(size=[0.8,in(0.4),board_thick]);
+    }
 
-    pin_length=1.16;
-    port_elevate=pin_length-board_thick+0.2;
+    pin_length=1.9; // clipped :/
+    port_elevate=pin_length-board_thick+0.1;
 
     port_width=8.4;
     port_length=20.8;
-    port_overhang=1.5; 
+    port_overhang=2;
     port_sep=6.730;
     port_total_width=port_sep+port_width*2;
     echo(port_elevate);
-    translate([helper_width/2,5+(teensy_length-port_length)/2,port_elevate]) {
+    translate([helper_width/2,5+(teensy_length-port_length)/2,-port_elevate]) {
       slotpair(port_width, port_length, port_total_width);
       translate([0,shelf_width,0])
       slotpair(port_overhang,port_length-shelf_width*2,port_sep+0.01);
@@ -410,7 +417,7 @@ module solder_helper() {
       slot(header_thick, header_width);
     }
 
-    inset=-box_thick+4;
+    inset=4;
     translate([helper_width/2,helper_length/2,0])
     bothsides(helper_length-inset*2) bothends(helper_width-inset*2)
     cylinder(d=3,h=helper_height);

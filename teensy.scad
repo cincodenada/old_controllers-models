@@ -4,7 +4,7 @@ header_hole_size=in(.03);
 header_hole_depth=in(.236);
 header_ps=in(0.1);
 teensy_width=in(0.7);
-teensy_length=in(1.2);
+teensy_length=in(1.4);
 teensy_thick=in(.063);
 
 pin_plastic=in(0.1);
