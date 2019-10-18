@@ -512,10 +512,10 @@ timestwo() lump_top();
 
 *board();
 
-side_cover();
+*side_cover();
 
-*box_bottom();
-*translate([
+box_bottom();
+translate([
     -center_to_teensy-teensy_length,
     teensy_width/2,
     board_top
