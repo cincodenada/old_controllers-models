@@ -320,6 +320,17 @@ module box_bottom() {
     wedge(outside_to_teensy, cable_width+box_thick*2);
   }
 
+  module usb_mirror_lump() {
+    depth=outside_to_teensy-cutout_thick;
+    translate([box_length/2,0,box_height]) {
+      mirror([1,0,0]) {
+        translate([0,-cable_width/2,0])
+        cube([depth,cable_width,box_thick]);
+        wedge(depth,cable_width);
+      }
+    }
+  }
+
 /*
         //Top holder
         bothends() {
@@ -338,6 +349,7 @@ module box_bottom() {
     union() {
       box_base();
       usb_holder();
+      usb_mirror_lump();
     }
 
     bothsides() bothends()
@@ -348,8 +360,11 @@ module box_bottom() {
         -box_thick-fudge,
         box_thick+board_offset-sideport_height
     ])
-    cube(size=[sideport_width+board_clearance,box_thick+fudge*2,sideport_height+fudge]);
+    cube(size=[sideport_width+board_clearance,box_thick+fudge*2+tolerance,sideport_height+fudge]);
 
+    trans_side_cover() side_tabs();
+    // XXX Ugly hack cause floating point bullshit??
+    translate([-0.01,-0.01,0])
     trans_side_cover() side_tabs();
   }
 }
@@ -494,10 +509,7 @@ timestwo() lump_top();
 
 side_cover();
 
-translate([0,-50,0]) {
-  box_bottom();
-  trans_side_cover() side_cover();
-}
+*box_bottom();
 *translate([
     -center_to_teensy-teensy_length,
     teensy_width/2,
