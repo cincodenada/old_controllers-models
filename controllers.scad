@@ -545,13 +545,15 @@ translate([0,0,box_height])
 linear_extrude(height=socket_depth)
 timestwo() lump_top();
 
-board();
 
-*trans_side_cover()
-side_cover();
+//trans_side_cover()
+!side_cover();
 
-box_bottom();
-translate([
+*socket_plates();
+
+*box_bottom();
+*board();
+*translate([
     -center_to_teensy-teensy_length,
     teensy_width/2,
     board_top
