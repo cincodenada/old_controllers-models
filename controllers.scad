@@ -127,7 +127,7 @@ module lump(solid=true) {
 }
 module lump_top() {
     translate([-ps*3,0,0]) {
-        %translate([ps*1.5,ps*(.5),0]) NES_top();
+        translate([ps*1.5,ps*(.5),0]) NES_top();
         translate([tpw/2,0,0]) SNES_top();
         translate([ps*4+SNES_gap,0,0]) N64_top();
     }
@@ -139,7 +139,7 @@ module timestwo() {
 }
 
 module side_cover() {
-  extension_height=box_height-side_offset-child_top_to_pins+box_thick;
+  extension_height=box_height-side_offset-side_ceiling+box_thick;
 
   module grabber() {
     /* Grabber */
@@ -182,7 +182,7 @@ module side_cover() {
         }
         bothends(side_length)
         translate([0,5,side_height+box_width/2])
-        cube([(outside_to_teensy-cutout_thick)*2,cable_height,cable_width],center=true);
+        cube([(outside_to_teensy-connector_overhang)*2,cable_height,cable_width],center=true);
       }
     }
   }
@@ -306,16 +306,16 @@ module box_bottom() {
                     outside_to_teensy,
                     cable_height+box_thick*2
                 ],center=true);
-                translate([0,-connector_overhang/2,0])
+                translate([0,-connector_overhang/2-fudge/2,0])
                 cube(size=[
                     cable_width,
-                    outside_to_teensy-connector_overhang+fudge*2,
+                    outside_to_teensy-connector_overhang+fudge,
                     cable_height
                 ],center=true);
-                translate([0,outside_to_teensy/2,connector_size[2]/2])
+                translate([0,0,connector_size[2]/2])
                 cube(size=[
                     connector_size[0],
-                    connector_overhang+fudge*2,
+                    outside_to_teensy+fudge*2,
                     connector_headroom
                 ],center=true);
             }
@@ -327,7 +327,7 @@ module box_bottom() {
   }
 
   module usb_mirror_lump() {
-    depth=outside_to_teensy-cutout_thick;
+    depth=outside_to_teensy-connector_overhang;
     translate([box_length/2,0,box_height]) {
       mirror([1,0,0]) {
         translate([0,-cable_width/2,0])
@@ -345,13 +345,12 @@ module box_bottom() {
       trans_side_cover() side_tabs();
     }
 
-    bothsides() bothends()
+    translate([0,0,box_thick+board_offset-sideport_height])
+    bothsides(board_width) bothends(board_length)
     translate([
-        // bothsides/ends is relative to box, not board
-        (child_length-board_length)+
-        (board_length/2+board_clearance-sideport_offset-sideport_width/2),
+        board_length/2-(sideport_offset+sideport_width/2),
         -box_thick-fudge,
-        box_thick+board_offset-sideport_height
+        0
     ])
     cube(size=[sideport_width+board_clearance,box_thick+fudge*2+tolerance,sideport_height+fudge]);
   }
