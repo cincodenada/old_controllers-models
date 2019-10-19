@@ -42,7 +42,6 @@ sideport_offset=22.86; // center of board to center of connector
 
 socket_thick=2.5;
 box_thick=2.5;
-side_thick=3.5;
 box_height=
     box_thick+
     board_offset+
@@ -97,6 +96,7 @@ side_offset=board_top+(board_to_child_top-child_top_to_pins);
 side_ceiling=max(ps+NES_corner_radius, N64_width/2)+socket_thick;
 socket_breadth=side_ceiling+SNES_corner_radius+socket_thick;
 
+side_thick=min(3.5, side_offset-(child_width-child_top_to_pins));
 side_length=child_length+side_thick*2;
 side_width=side_offset+side_ceiling;
 side_height=socket_depth+socket_thick+pin_base_height+board_thick+child_offset;
@@ -272,6 +272,13 @@ module side_cover() {
     side_ceiling+extension_height-box_thick,
     side_width+box_width/2])
   grabber();
+
+  
+  /* Board holders */
+  translate([0,child_top_to_pins-child_width/2,0])
+  bothsides(child_width) bothends(child_length)
+  translate([0,-3,side_thick])
+  cube(size=[3,3,side_height-side_thick]);
 }
 
 module socket_slots(height) {
@@ -436,6 +443,13 @@ module board() {
             board_thick
         ], center=true);
     }
+}
+
+module child_board() {
+  color("darkgreen") {
+    translate([0,child_top_to_pins-child_width/2,socket_depth+socket_thick+pin_base_height])
+    cube(size=[child_length,child_width,board_thick],center=true);
+  }
 }
 
 module solder_helper() {
