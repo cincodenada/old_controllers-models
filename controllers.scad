@@ -39,7 +39,7 @@ sideport_width=21.35;
 sideport_height=2.6+0.5;
 sideport_offset=22.86; // center of board to center of connector
 
-socket_thick=1.5;
+socket_thick=2.5;
 box_thick=2.5;
 box_height=
     box_thick+
@@ -207,7 +207,7 @@ module side_cover() {
       // Socket walls
       minkowski() {
         linear_extrude(height=socket_depth)
-        timestwo() lump();
+        mirror([1,0,0]) timestwo() lump();
         cylinder(h=socket_thick, r=socket_thick);
       }
     }
@@ -221,15 +221,15 @@ module side_cover() {
     // Sockets
     translate([0,0,-fudge])
     linear_extrude(height=socket_depth*2)
-    timestwo() lump();
+    mirror([1,0,0]) timestwo() lump();
 
     // Socket lid slots
     translate([0,0,socket_depth])
     timestwo() {
       translate([-lid_slot_width/2,-socket_breadth/2,0]) {
-        translate([-ps,0,0])
+        translate([-ps*2,0,0])
         cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick*2]);
-        translate([ps+SNES_gap,0,0])
+        translate([SNES_gap,0,0])
         cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick*2]);
       }
     }
