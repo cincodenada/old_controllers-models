@@ -220,7 +220,7 @@ module side_cover() {
 
     // Sockets
     translate([0,0,-fudge])
-    linear_extrude(height=socket_depth+socket_thick+fudge*2)
+    linear_extrude(height=socket_depth*2)
     timestwo() lump();
 
     // Socket lid slots
@@ -228,9 +228,9 @@ module side_cover() {
     timestwo() {
       translate([-lid_slot_width/2,-socket_breadth/2,0]) {
         translate([-ps,0,0])
-        cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick]);
+        cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick*2]);
         translate([ps+SNES_gap,0,0])
-        cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick]);
+        cube([lid_slot_width,socket_breadth+socket_thick*2,socket_thick*2]);
       }
     }
 
