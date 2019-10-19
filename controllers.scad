@@ -345,14 +345,15 @@ module box_bottom() {
       trans_side_cover() side_tabs();
     }
 
+    /* Side ports */
     translate([0,0,box_thick+board_offset-sideport_height])
-    bothsides(board_width) bothends(board_length)
+    bothsides(box_width) bothends(board_length)
     translate([
         board_length/2-(sideport_offset+sideport_width/2),
-        -box_thick-fudge,
+        -fudge,
         0
     ])
-    cube(size=[sideport_width+board_clearance,box_thick+fudge*2+tolerance,sideport_height+fudge]);
+    cube(size=[sideport_width+board_clearance,box_thick+fudge*2+tolerance,sideport_height*2]);
   }
 }
 
