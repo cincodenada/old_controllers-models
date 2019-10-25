@@ -1,4 +1,6 @@
 function in(in) = in*25.4;
+// Converts a hexagon's minor radius/diameter to major
+function hex_major(minor) = minor*2/sqrt(3);
 $fa=1;
 $fs=.5;
 fudge=0.5;
@@ -63,7 +65,16 @@ teensy_hole_height = max(
 );
 bottom_height=box_height-socket_depth-socket_thick;
 
-box_length=child_length+box_thick*2;
+side_offset=board_top+(board_to_child_top-child_top_to_pins);
+side_ceiling=max(ps+NES_corner_radius, N64_width/2)+socket_thick;
+socket_breadth=side_ceiling+SNES_corner_radius+socket_thick;
+
+side_thick=min(3.5, side_offset-(child_width-child_top_to_pins));
+side_length=child_length+side_thick*2;
+side_width=side_offset+side_ceiling;
+side_height=socket_depth+socket_thick+pin_base_height+board_thick+child_offset;
+
+box_length=child_length+side_thick*2;
 box_width=board_width+board_clearance*2;
 
 teensy_trans=(bottom_to_teensy-top_to_teensy)/2;
@@ -91,15 +102,6 @@ cutout_pos=[-cutout_size[0]/2,-box_width/2,bottom_height];
 holder_offset=board_top+ledge_width/2;
 holder_height=box_height-(socket_depth+socket_thick+holder_offset);
 holder_clearance=0.5;
-
-side_offset=board_top+(board_to_child_top-child_top_to_pins);
-side_ceiling=max(ps+NES_corner_radius, N64_width/2)+socket_thick;
-socket_breadth=side_ceiling+SNES_corner_radius+socket_thick;
-
-side_thick=min(3.5, side_offset-(child_width-child_top_to_pins));
-side_length=child_length+side_thick*2;
-side_width=side_offset+side_ceiling;
-side_height=socket_depth+socket_thick+pin_base_height+board_thick+child_offset;
 
 lid_slot_width=5;
 
@@ -390,6 +392,29 @@ module box_bottom() {
     }
   }
 
+  module bolt_holder() {
+    nut_width=hex_major(4);
+    nut_thick=1.51;
+    bolt_dia=2;
+    bolt_below_board=3.6;
+    roof_thick=1;
+    wall_thick=0.5;
+    post_width=nut_width+wall_thick*2;
+
+    nut_base=board_offset-bolt_below_board;
+    post_height=nut_base+nut_thick*1.1+roof_thick;
+
+    difference() {
+      translate([0,0,post_height/2])
+      cube(size=[post_width,post_width,post_height],center=true);
+      translate([0,0,nut_base]) {
+        rotate([0,0,30])
+        cylinder(h=nut_thick*1.1,d=nut_width*1.1,$fn=6);
+        cylinder(h=post_height,d=bolt_dia*1.1);
+      }
+    }
+  }
+
   difference() {
     union() {
       box_base();
@@ -408,6 +433,11 @@ module box_bottom() {
     ])
     cube(size=[sideport_width+board_clearance,box_thick+fudge*2+tolerance,sideport_height*2]);
   }
+
+  translate([-9.525,3.175,box_thick])
+  bolt_holder();
+  translate([9.525,-5.334,box_thick])
+  bolt_holder();
 }
 
 module bothsides(width=box_width-box_thick*2) {
@@ -458,6 +488,11 @@ module solder_helper() {
   helper_height=pin_plastic+board_thick-popup_height;
   helper_length=teensy_length*2;
   shelf_width=1;
+
+  nut_thick=2.28;
+  nut_width=hex_major(5.4);
+  nut_clearance=0.5;
+  nut_offset=(helper_height-nut_thick-nut_clearance*2)/2;
 
   module slot(width, length) {
     translate([0,0,board_thick])
@@ -515,14 +550,22 @@ module solder_helper() {
       slot(base_width+ps, ps*3);
 
       header_width=in(0.8);
-      translate([-5, multiport_width/2-header_width/2,0])
+      header_offset=5.080; // measured from pin to pin
+      pin_clearance=1;
+      translate([(base_width/2-header_thick/2)-header_offset, multiport_width/2-header_width/2+in(0.05),helper_height-pin_clearance])
+      cube(size=[header_thick,header_width,pin_clearance*2]);
+      translate([-5, multiport_width/2-header_width/2+in(0.05),0])
       slot(header_thick, header_width);
     }
 
     inset=4;
     translate([helper_width/2,helper_length/2,0])
     bothsides(helper_length-inset*2) bothends(helper_width-inset*2)
-    cylinder(d=3,h=helper_height);
+    cylinder(d=3,h=nut_offset);
+
+    translate([helper_width/2,helper_length/2,nut_offset])
+    bothsides(helper_length-inset*2) bothends(helper_width-inset*2)
+    cylinder(d=nut_width+nut_clearance,h=nut_thick,$fn=6);
   }
 
   // posts
