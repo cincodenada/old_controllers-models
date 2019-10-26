@@ -551,9 +551,10 @@ module solder_helper() {
 
       header_width=in(0.8);
       header_offset=5.080; // measured from pin to pin
+      header_pos=(base_width/2-header_thick/2)-header_offset;
       pin_clearance=1;
-      translate([(base_width/2-header_thick/2)-header_offset, multiport_width/2-header_width/2+in(0.05),helper_height-pin_clearance])
-      cube(size=[header_thick,header_width,pin_clearance*2]);
+      translate([header_pos, multiport_width/2-header_width/2+in(0.05),helper_height-pin_clearance])
+      cube(size=[-header_pos,header_width,pin_clearance*2]);
       translate([-5, multiport_width/2-header_width/2+in(0.05),0])
       slot(header_thick, header_width);
     }
