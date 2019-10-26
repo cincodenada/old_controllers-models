@@ -3,7 +3,7 @@ function in(in) = in*25.4;
 function hex_major(minor) = minor*2/sqrt(3);
 $fa=1;
 $fs=.5;
-fudge=0.5;
+fudge=0;
 tolerance=.1;
 slant=2;
 foot_thick=.2;
@@ -147,7 +147,7 @@ module side_cover() {
 
   module grabber() {
     /* Grabber */
-    grabber_width=10;
+    grabber_width=5;
     grabber_length=5;
     bump_size=2;
     translate([0,-box_thick,-grabber_length/2]) {
